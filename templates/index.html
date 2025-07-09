@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Portal xnosp.cloud</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #ffffff);
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    header {
+      background-color: #28a745;
+      padding: 20px;
+      color: white;
+    }
+
+    h1 {
+      margin: 0;
+    }
+
+    main {
+      padding: 40px 20px;
+    }
+
+    .servicos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 20px;
+      width: 250px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.03);
+    }
+
+    .card a {
+      text-decoration: none;
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 10px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Portal xnosp.cloud</h1>
+    <p>Bem-vindo ao seu centro de serviços</p>
+  </header>
+
+  <main>
+    <h2>Serviços Disponíveis</h2>
+
+    <div class="servicos">
+      <div class="card">
+        <h3>Gerador de Nota Fiscal</h3>
+        <p>Emissão de notas fiscais em PDF</p>
+        <a href="/notafiscal">Acessar Serviço</a>
+      </div>
+
+      <!-- Você pode adicionar mais serviços abaixo -->
+      <!--
+      <div class="card">
+        <h3>Outro Serviço</h3>
+        <p>Descrição</p>
+        <a href="/outroservico">Acessar</a>
+      </div>
+      -->
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 xnosp.cloud - Todos os direitos reservados.
+  </footer>
+
+</body>
+</html>
