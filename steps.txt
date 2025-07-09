@@ -1,0 +1,17 @@
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install pandas
+
+#se for no windows ou no macOS
+pip3 install docxtpl
+pip3 install docx2pdf
+
+
+#no linux
+sudo apt install libreoffice
+
+
+pip3 install flask
+pip3 install flask docxtpl
+
+pip3 freeze > requirements.txt
