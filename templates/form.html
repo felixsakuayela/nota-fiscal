@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerador de Nota Fiscal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 2rem auto;
+      background: #f9f9f9;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    h1, h2 {
+      color: #218838;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input[type="text"], input[type="date"], input[type="number"] {
+      padding: 6px;
+      margin-top: 4px;
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .tabela-itens-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 1em;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+
+    th, td {
+      border: 1px solid #aaa;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #eee;
+    }
+
+    .item-total {
+      font-weight: bold;
+    }
+
+    button, input[type="submit"] {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 15px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover, input[type="submit"]:hover {
+      background-color: #218838;
+    }
+
+    #modal-chave {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #modal-chave .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      width: 300px;
+      text-align: center;
+    }
+
+    #modal-chave input[type="text"] {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 10px;
+    }
+
+    .table-scroll-hint {
+      display: none;
+      font-size: 14px;
+      text-align: center;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 768px) {
+      .table-scroll-hint {
+        display: block;
+      }
+    }
+
+    #barra-progresso {
+      width: 100%;
+      height: 6px;
+      background: #ccc;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 15px;
+      display: none;
+    }
+
+    #barra-progresso .progresso {
+      width: 0%;
+      height: 100%;
+      background-color: #28a745;
+      animation: carregar 2s linear forwards;
+    }
+
+    @keyframes carregar {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Emissor de Nota Fiscal</h1>
+
+  <form method="post">
+    <h2>Informações do Cliente</h2>
+    <label>Nome do Cliente:</label>
+    <input type="text" name="nome" required>
+
+    <label>Data da Compra:</label>
+    <input type="date" name="data_compra" required>
+
+    <label>CEP:</label>
+    <input type="text" name="cep" id="cep" required onblur="buscarCEP()">
+
+    <label>Endereço:</label>
+    <input type="text" name="endereco" id="endereco" required>
+
+    <label>Número:</label>
+    <input type="text" name="numero" required>
+
+    <label>Complemento:</label>
+    <input type="text" name="complemento">
+
+    <label>Bairro:</label>
+    <input type="text" name="bairro" id="bairro" required>
+
+    <label>Município:</label>
+    <input type="text" name="municioio" id="municioio" required>
+
+    <label>UF:</label>
+    <input type="text" name="uf" id="uf" required>
+
+    <h2>Itens da Nota Fiscal</h2>
+
+    <div class="tabela-itens-container">
+      <table id="itens-tabela">
+        <thead>
+          <tr>
+            <th>Nome do Item</th>
+            <th>Quantidade</th>
+            <th>Valor Unitário (R$)</th>
+            <th>Valor Total (R$)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="text" name="item_nome_0" required></td>
+            <td><input type="number" name="item_qtd_0" min="1" value="1" oninput="atualizarTotal(this)"></td>
+            <td><input type="number" step="0.01" name="item_unit_0" value="0.00" oninput="atualizarTotal(this)"></td>
+            <td class="item-total">R$ 0,00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-scroll-hint">↔️ Role a tabela lateralmente para ver todos os campos</div>
+
+    <button type="button" onclick="adicionarItem()">+ Adicionar Item</button>
+
+    <h3>Total da Nota: <span id="valor-total-nota">R$ 0,00</span></h3>
+    <h3>Total de Quantidade de Itens: <span id="total-quantidade">0</span></h3>
+
+    <button type="button" onclick="abrirModal()">Gerar NOTA FISCAL</button>
+
+    <h5>Mais informações contate via WhatsApp: 
+      <a href="https://wa.me/5511999263484" target="_blank">+55 11 99926-3484</a>
+    </h5>
+  </form>
+
+  <div id="modal-chave">
+    <div class="modal-content">
+      <h3>Digite sua chave de pagamento</h3>
+      <input type="text" id="campo-chave" required>
+      <div style="margin-top: 1rem;">
+        <button onclick="enviarFormulario()">Enviar</button>
+        <button onclick="fecharModal()" style="background-color:red;">Cancelar</button>
+      </div>
+      <div id="barra-progresso"><div class="progresso"></div></div>
+    </div>
+  </div>
+
+  <script>
+    let contador = 1;
+
+    function formatarMoeda(valor) {
+      return "R$ " + valor.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function atualizarTotal(input) {
+      const linha = input.closest("tr");
+      const qtd = parseFloat(linha.querySelector('input[name^="item_qtd_"]').value) || 0;
+      const unit = parseFloat(linha.querySelector('input[name^="item_unit_"]').value) || 0;
+      const total = qtd * unit;
+      linha.querySelector(".item-total").innerText = formatarMoeda(total);
+      atualizarTotais();
+    }
+
+    function atualizarTotais() {
+      let totalNota = 0;
+      let totalQtd = 0;
+      document.querySelectorAll("tbody tr").forEach(linha => {
+        const qtd = parseInt(linha.querySelector('input[name^="item_qtd_"]').value) || 0;
+        const unit = parseFloat(linha.querySelector('input[name^="item_unit_"]').value) || 0;
+        totalNota += qtd * unit;
+        totalQtd += qtd;
+      });
+      document.getElementById("valor-total-nota").innerText = formatarMoeda(totalNota);
+      document.getElementById("total-quantidade").innerText = totalQtd;
+    }
+
+    function buscarCEP() {
+      const cep = document.getElementById("cep").value.replace(/\D/g, '');
+      if (cep.length !== 8) return;
+      fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.erro) {
+            alert("CEP não encontrado.");
+            return;
+          }
+          document.getElementById("endereco").value = data.logradouro.toUpperCase();
+          document.getElementById("bairro").value = data.bairro.toUpperCase();
+          document.getElementById("municioio").value = data.localidade.toUpperCase();
+          document.getElementById("uf").value = data.uf.toUpperCase();
+        })
+        .catch(() => alert("Erro ao consultar o CEP."));
+    }
+
+    function adicionarItem() {
+      if (contador >= 30) {
+        alert("Limite de 30 itens atingido.");
+        return;
+      }
+      const tbody = document.querySelector("#itens-tabela tbody");
+      const novaLinha = document.createElement("tr");
+      novaLinha.innerHTML = `
+        <td><input type="text" name="item_nome_${contador}" required></td>
+        <td><input type="number" name="item_qtd_${contador}" min="1" value="1" oninput="atualizarTotal(this)"></td>
+        <td><input type="number" step="0.01" name="item_unit_${contador}" value="0.00" oninput="atualizarTotal(this)"></td>
+        <td class="item-total">R$ 0,00</td>
+      `;
+      tbody.appendChild(novaLinha);
+      contador++;
+    }
+
+    function abrirModal() {
+      const form = document.querySelector("form");
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+      document.getElementById("modal-chave").style.display = "flex";
+    }
+
+    function fecharModal() {
+      document.getElementById("modal-chave").style.display = "none";
+    }
+
+    function enviarFormulario() {
+      const chave = document.getElementById("campo-chave").value.trim();
+      if (!chave) {
+        alert("Por favor, insira a chave de pagamento.");
+        return;
+      }
+
+      const form = document.querySelector("form");
+      let campoExistente = document.querySelector("input[name='chave_pagamento']");
+      if (!campoExistente) {
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = "chave_pagamento";
+        hiddenInput.value = chave;
+        form.appendChild(hiddenInput);
+      } else {
+        campoExistente.value = chave;
+      }
+
+      // Mostra barra de progresso
+      const progresso = document.getElementById("barra-progresso");
+      progresso.style.display = 'block';
+
+      // Aguarda 2 segundos para efeito da animação
+      setTimeout(() => {
+        form.submit();
+      }, 2000);
+    }
+
+    window.onload = atualizarTotais;
+  </script>
+</body>
+</html>
